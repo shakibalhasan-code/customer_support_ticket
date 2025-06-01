@@ -1,47 +1,16 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:workflowx/features/auth/controllers/auth_controller.dart';
+import '../../../core/routes/app_pages.dart'; // Assuming this is correct
 
-import '../../../core/routes/app_pages.dart';
-
-class SignUpNowScreen extends StatefulWidget {
+class SignUpNowScreen extends StatelessWidget {
   const SignUpNowScreen({super.key});
 
   @override
-  State<SignUpNowScreen> createState() => _SignUpNowScreenState();
-}
-
-class _SignUpNowScreenState extends State<SignUpNowScreen> {
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _agreePrivacyPolicy = false;
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  void _togglePasswordView() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
-  }
-
-  void _toggleAgreePolicy(bool? newValue) {
-    if (newValue != null) {
-      setState(() {
-        _agreePrivacyPolicy = newValue;
-      });
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final AuthController authController = Get.find<AuthController>();
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -50,8 +19,6 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 24),
-
-              // Title
               const Text(
                 'Create a new Account',
                 style: TextStyle(
@@ -60,7 +27,6 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
                   color: Colors.black87,
                 ),
               ),
-
               const SizedBox(height: 32),
 
               // Name Label and TextField
@@ -70,9 +36,11 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: _nameController,
+                controller:
+                    authController
+                        .fullNameController, // Use controller from AuthController
                 decoration: InputDecoration(
-                  hintText: 'Enter yor Name...',
+                  hintText: 'Enter your Name...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -82,7 +50,6 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
 
               // Email Label and TextField
@@ -92,7 +59,9 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
               ),
               const SizedBox(height: 8),
               TextField(
-                controller: _emailController,
+                controller:
+                    authController
+                        .emailController, // Use controller from AuthController
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'example@gmail.com',
@@ -105,7 +74,6 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 24),
 
               // Password Label and TextField
@@ -114,76 +82,111 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
                 style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
               ),
               const SizedBox(height: 8),
-              TextField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  hintText: 'Enter your Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: 12,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                      color: Colors.grey,
+              Obx(
+                () => TextField(
+                  // Wrap with Obx for password visibility
+                  controller:
+                      authController
+                          .passwordController, // Use controller from AuthController
+                  obscureText: authController.isPasswordVisible.value,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your Password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    onPressed: _togglePasswordView,
+                    contentPadding: const EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: 12,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        authController.isPasswordVisible.value
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        // Toggle password visibility
+                        authController.isPasswordVisible.value =
+                            !authController.isPasswordVisible.value;
+                      },
+                    ),
                   ),
                 ),
               ),
-
               const SizedBox(height: 12),
 
               // Privacy policy checkbox and text
               Row(
                 children: [
-                  Checkbox(
-                    value: _agreePrivacyPolicy,
-                    onChanged: _toggleAgreePolicy,
-                    activeColor: Colors.blue,
+                  Obx(
+                    () => Checkbox(
+                      // Wrap with Obx for checkbox state
+                      value: authController.agreeToPrivacyPolicy.value,
+                      onChanged: (bool? newValue) {
+                        authController.toggleAgreeToPrivacyPolicy();
+                      },
+                      activeColor: Colors.blue,
+                    ),
                   ),
-                  const Expanded(
-                    child: Text(
-                      'I agree with privacy policy.',
-                      style: TextStyle(fontSize: 16),
+                  Expanded(
+                    // Use Expanded so text doesn't overflow if long
+                    child: InkWell(
+                      // Make text tappable to also toggle checkbox
+                      onTap: () {
+                        authController.toggleAgreeToPrivacyPolicy();
+                      },
+                      child: const Text(
+                        'I agree with privacy policy.',
+                        style: TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ],
               ),
-
               const SizedBox(height: 16),
 
               // Sign Up button
               SizedBox(
                 width: double.infinity,
                 height: 48,
-                child: ElevatedButton(
-                  onPressed:
-                      _agreePrivacyPolicy
-                          ? () {
-                            // TODO: Implement sign up
-                          }
-                          : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    disabledBackgroundColor: Colors.blue.withOpacity(0.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(6),
+                child: Obx(
+                  () => ElevatedButton(
+                    // Wrap with Obx for button state
+                    onPressed:
+                        authController.isLoading.value ||
+                                !authController.agreeToPrivacyPolicy.value
+                            ? null // Disable if loading or policy not agreed
+                            : () {
+                              authController.createAccount();
+                            },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      disabledBackgroundColor: Colors.blue.withOpacity(0.5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(6),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    child:
+                        authController.isLoading.value
+                            ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                            : const Text(
+                              'Sign Up',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
                   ),
                 ),
               ),
-
               const Spacer(),
 
               // Already have account? Sign In
@@ -202,14 +205,15 @@ class _SignUpNowScreenState extends State<SignUpNowScreen> {
                         recognizer:
                             TapGestureRecognizer()
                               ..onTap = () {
-                                Get.back();
+                                // Optionally clear sign-up fields before navigating back
+                                // authController.prepareForSignUp(); // Or specific clear methods
+                                Get.back(); // Or Get.toNamed(Routes.signInNow) if you want to be explicit
                               },
                       ),
                     ],
                   ),
                 ),
               ),
-
               const SizedBox(height: 20),
             ],
           ),

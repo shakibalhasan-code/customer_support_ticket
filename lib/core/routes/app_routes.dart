@@ -2,6 +2,8 @@ part of 'app_pages.dart';
 
 abstract class Routes {
   static const home = '/home';
+  static const splash = '/splash';
+
   static const signIn = '/sign-in';
   static const signUpNow = '/sign-up_now';
   static const signInNow = '/sign-in-now';

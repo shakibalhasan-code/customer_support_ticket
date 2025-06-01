@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:workflowx/core/constants/app_assets.dart';
 import 'package:workflowx/core/routes/app_pages.dart';
+import 'package:workflowx/features/auth/controllers/auth_controller.dart';
 
 class SignInScreen extends StatelessWidget {
-  const SignInScreen({super.key});
+  SignInScreen({super.key});
+
+  final controller = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
